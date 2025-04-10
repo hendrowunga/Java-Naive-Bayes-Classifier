@@ -75,8 +75,7 @@ public class RunnableExample {
         System.out.printf("Akurasi Rata-Rata: %.4f (Ya: %.4f, Tidak: %.4f)%n",
                 averageAccuracy, averageAccuracyYes, averageAccuracyNo);
 
-        // Tambahkan Prediksi untuk data gambar
-        System.out.println("\n\nPrediksi Data dari Gambar:");
+        System.out.println("\n\nPrediksi Data 31...40:");
         DataModel imageData = new DataModel("31...40", "low", "no", "fair", null);
         System.out.println("  Instance: " + formatDataModel(imageData));
         naiveBayes.predictDetailed(imageData); // Gunakan naiveBayes yang telah dilatih
