@@ -18,11 +18,23 @@ public class RunnableExample {
 
         List<DataModel> data = DataHelper.loadData(filePath, fileType, delimiter, separator);
 
-        int numFolds = 5; // Jumlah lipatan dalam validasi silang
+
+        System.out.println("Data Awal:");
+        for (int i = 0; i < Math.min(5, data.size()); i++) {
+            DataModel row = data.get(i);
+            System.out.printf("  %d: %s%n", i + 1, formatDataModel(row));
+        }
+        System.out.println();
+
+        int numFolds = 5;
         double totalAccuracy = 0.0;
+        double totalAccuracyYes = 0.0;
+        double totalAccuracyNo = 0.0;
+
+        // Deklarasikan naiveBayes di luar loop
+        NaiveBayesClassifier naiveBayes = null;
 
         for (int fold = 0; fold < numFolds; fold++) {
-            // Bagi data menjadi set training dan pengujian untuk lipatan saat ini
             List<DataModel> trainingData = new ArrayList<>();
             List<DataModel> testingData = new ArrayList<>();
             for (int i = 0; i < data.size(); i++) {
@@ -33,18 +45,72 @@ public class RunnableExample {
                 }
             }
 
-            // Latih classifier
-            NaiveBayesClassifier naiveBayes = new NaiveBayesClassifier();
+            // Inisialisasi naiveBayes di dalam loop
+            naiveBayes = new NaiveBayesClassifier();
             naiveBayes.train(trainingData);
 
-            // Evaluasi classifier
-            double accuracy = evaluate(naiveBayes, testingData);
-            System.out.println("Akurasi Lipatan " + (fold + 1) + ": " + accuracy);
-            totalAccuracy += accuracy;
+            EvaluationResults results = evaluateDetailed(naiveBayes, testingData);
+            System.out.printf("Akurasi Lipatan %d: %.4f (Ya: %.4f, Tidak: %.4f)%n", fold + 1,
+                    results.overallAccuracy, results.accuracyYes, results.accuracyNo);
+
+            totalAccuracy += results.overallAccuracy;
+            totalAccuracyYes += results.accuracyYes;
+            totalAccuracyNo += results.accuracyNo;
+
+            // Cetak contoh prediksi yang detail hanya untuk lipatan pertama
+            // if (fold == 0 && !testingData.isEmpty()) { // Hilangkan kondisi ini
+            System.out.println("\nDetail Prediksi untuk Lipatan " + (fold + 1) + ":");
+            for (DataModel testData : testingData) {
+                System.out.println("  Instance: " + testData);
+                naiveBayes.predictDetailed(testData);
+                System.out.println();
+            }
+            // }
         }
 
         double averageAccuracy = totalAccuracy / numFolds;
-        System.out.println("Akurasi Rata-Rata: " + averageAccuracy);
+        double averageAccuracyYes = totalAccuracyYes / numFolds;
+        double averageAccuracyNo = totalAccuracyNo / numFolds;
+
+        System.out.printf("Akurasi Rata-Rata: %.4f (Ya: %.4f, Tidak: %.4f)%n",
+                averageAccuracy, averageAccuracyYes, averageAccuracyNo);
+
+        // Tambahkan Prediksi untuk data gambar
+        System.out.println("\n\nPrediksi Data dari Gambar:");
+        DataModel imageData = new DataModel("31...40", "low", "no", "fair", null);
+        System.out.println("  Instance: " + formatDataModel(imageData));
+        naiveBayes.predictDetailed(imageData); // Gunakan naiveBayes yang telah dilatih
+        System.out.println("  Beli Komputer (Prediksi): " + naiveBayes.predict(imageData));
+    }
+
+    public static EvaluationResults evaluateDetailed(NaiveBayesClassifier naiveBayes, List<DataModel> testingData) {
+        int correctPredictionsYes = 0;
+        int correctPredictionsNo = 0;
+        int totalYes = 0;
+        int totalNo = 0;
+
+        for (DataModel row : testingData) {
+            String predictedCategory = naiveBayes.predict(row);
+            String actualCategory = row.getBuysComputer();
+
+            if (actualCategory.equals("yes")) {
+                totalYes++;
+                if (predictedCategory != null && predictedCategory.equals(actualCategory)) {
+                    correctPredictionsYes++;
+                }
+            } else if (actualCategory.equals("no")) {
+                totalNo++;
+                if (predictedCategory != null && predictedCategory.equals(actualCategory)) {
+                    correctPredictionsNo++;
+                }
+            }
+        }
+
+        double accuracyYes = (totalYes > 0) ? (double) correctPredictionsYes / totalYes : 0.0;
+        double accuracyNo = (totalNo > 0) ? (double) correctPredictionsNo / totalNo : 0.0;
+        double overallAccuracy = (double) (correctPredictionsYes + correctPredictionsNo) / testingData.size();
+
+        return new EvaluationResults(overallAccuracy, accuracyYes, accuracyNo);
     }
 
     public static double evaluate(NaiveBayesClassifier naiveBayes, List<DataModel> testingData) {
@@ -59,4 +125,23 @@ public class RunnableExample {
         return (double) correctPredictions / testingData.size();
     }
 
+
+    // Metode pembantu untuk memformat DataModel
+    private static String formatDataModel(DataModel data) {
+        return String.format("Umur: %-6s Pendapatan: %-7s Pelajar: %-4s Kredit: %-9s Beli Komputer: %-3s",
+                data.getAge(), data.getIncome(), data.getStudent(), data.getCreditRating(), data.getBuysComputer());
+    }
+
+    // Kelas pembantu untuk menyimpan hasil evaluasi
+    static class EvaluationResults {
+        double overallAccuracy;
+        double accuracyYes;
+        double accuracyNo;
+
+        public EvaluationResults(double overallAccuracy, double accuracyYes, double accuracyNo) {
+            this.overallAccuracy = overallAccuracy;
+            this.accuracyYes = accuracyYes;
+            this.accuracyNo = accuracyNo;
+        }
+    }
 }
