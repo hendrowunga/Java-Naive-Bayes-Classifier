@@ -30,7 +30,7 @@ public class BayesClassifier<T, K> extends Classifier<T, K> {
      * @return The product of all feature probabilities.
      */
     private float featuresProbabilityProduct(Collection<T> features,
-            K category) {
+                                             K category) {
         float product = 1.0f;
         for (T feature : features)
             product *= this.featureWeighedAverage(feature, category);
@@ -48,7 +48,7 @@ public class BayesClassifier<T, K> extends Classifier<T, K> {
      */
     private float categoryProbability(Collection<T> features, K category) {
         return ((float) this.getCategoryCount(category)
-                    / (float) this.getCategoriesTotal())
+                / (float) this.getCategoriesTotal())
                 * featuresProbabilityProduct(features, category);
     }
 
@@ -73,16 +73,16 @@ public class BayesClassifier<T, K> extends Classifier<T, K> {
                 new TreeSet<Classification<T, K>>(
                         new Comparator<Classification<T, K>>() {
 
-                    public int compare(Classification<T, K> o1,
-                            Classification<T, K> o2) {
-                        int toReturn = Float.compare(
-                                o1.getProbability(), o2.getProbability());
-                        if ((toReturn == 0)
-                                && !o1.getCategory().equals(o2.getCategory()))
-                            toReturn = -1;
-                        return toReturn;
-                    }
-                });
+                            public int compare(Classification<T, K> o1,
+                                               Classification<T, K> o2) {
+                                int toReturn = Float.compare(
+                                        o1.getProbability(), o2.getProbability());
+                                if ((toReturn == 0)
+                                        && !o1.getCategory().equals(o2.getCategory()))
+                                    toReturn = -1;
+                                return toReturn;
+                            }
+                        });
 
         for (K category : this.getCategories())
             probabilities.add(new Classification<T, K>(
