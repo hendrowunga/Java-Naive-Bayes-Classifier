@@ -12,11 +12,6 @@ import de.daslaboratorium.machinelearning.classifier.Classifier;
  * A concrete implementation of the abstract Classifier class.  The Bayes
  * classifier implements a naive Bayes approach to classifying a given set of
  * features: classify(feat1,...,featN) = argmax(P(cat)*PROD(P(featI|cat)
- *
- * @author Philipp Nolte
- *
- * @see http://en.wikipedia.org/wiki/Naive_Bayes_classifier
- *
  * @param <T> The feature class.
  * @param <K> The category class.
  */
