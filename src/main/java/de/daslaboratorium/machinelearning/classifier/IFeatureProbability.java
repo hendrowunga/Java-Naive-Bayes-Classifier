@@ -15,7 +15,7 @@ public interface IFeatureProbability<T, K> {
     /**
      * Returns the probability of a <code>feature</code> being classified as
      * <code>category</code> in the learning set.
-     * 
+     *
      * @param feature
      *            the feature to return the probability for
      * @param category
