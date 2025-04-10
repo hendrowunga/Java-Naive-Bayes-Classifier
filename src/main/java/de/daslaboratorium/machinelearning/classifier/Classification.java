@@ -7,8 +7,6 @@ import java.util.Collection;
  * A basic wrapper reflecting a classification. It will store both featureset
  * and resulting classification.
  *
- * @author Philipp Nolte
- *
  * @param <T>
  *            The feature class.
  * @param <K>
