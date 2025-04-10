@@ -16,10 +16,8 @@ import java.util.Set;
  *
  * @author Philipp Nolte
  *
- * @param <T>
- *            A feature class
- * @param <K>
- *            A category class
+ * @param <T> The feature class.
+ * @param <K> The category class.
  */
 public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, java.io.Serializable {
 
@@ -263,7 +261,7 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
 
     /**
      * Retrieves the total number of occurrences of the given feature.
-     * 
+     *
      * @param feature
      *            The feature, which count to retrieve.
      * @return The total number of occurences of the feature.
@@ -275,7 +273,7 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
 
     /**
      * Retrieves the number of occurrences of the given category.
-     * 
+     *
      * @param category
      *            The category, which count should be retrieved.
      * @return The number of occurrences.
@@ -289,13 +287,13 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
      * {@inheritDoc}
      */
     public float featureProbability(T feature, K category) {
-        final float totalFeatureCount = this.getFeatureCount(feature);
+        final float featureCountInCategory = this.getFeatureCount(feature, category);
+        final float totalCategoryCount = this.getCategoryCount(category);
+        final int numberOfFeatures = this.getFeatures().size();
 
-        if (totalFeatureCount == 0) {
-            return 0;
-        } else {
-            return this.getFeatureCount(feature, category) / (float) this.getFeatureCount(feature);
-        }
+        // Laplace Correction: Add-1 smoothing
+        float probability = (featureCountInCategory + 1) / (totalCategoryCount + numberOfFeatures);
+        return probability;
     }
 
     /**
@@ -379,7 +377,7 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
      * @return The weighed average probability.
      */
     public float featureWeighedAverage(T feature, K category, IFeatureProbability<T, K> calculator, float weight,
-            float assumedProbability) {
+                                       float assumedProbability) {
 
         /*
          * use the given calculating object or the default method to calculate
