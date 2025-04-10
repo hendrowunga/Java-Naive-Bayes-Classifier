@@ -36,19 +36,33 @@ public class NaiveBayesClassifier {
 
         String predictedCategory = null;
         double maxPosterior = Double.NEGATIVE_INFINITY;
+        double evidence = 0.0;  // Evidence P(fitur) untuk normalisasi
 
         // 1. Ambil semua kelas yang mungkin
         Set<String> categories = bayes.getCategories();
+
+        // 2. Hitung Evidence P(fitur)
+        for (String category : categories) {
+            double priorProbability = (double) bayes.getCategoryCount(category) / bayes.getCategoriesTotal();
+            double likelihood = 1.0;
+
+            for (String feature : features) {
+                double conditionalProbability = bayes.featureProbability(feature, category);
+                likelihood *= conditionalProbability;
+            }
+
+            evidence += priorProbability * likelihood;  // P(fitur) = sum(P(fitur|category) * P(category))
+        }
 
         // Loop melalui setiap kelas
         for (String category : categories) {
             System.out.println("\nKelas: " + category);
 
-            // 2. Hitung probabilitas prior untuk kelas
+            // 3. Hitung probabilitas prior untuk kelas
             double priorProbability = (double) bayes.getCategoryCount(category) / bayes.getCategoriesTotal();
             System.out.printf("  Probabilitas Prior P(%s) = %.4f%n", category, priorProbability);
 
-            // 3. Hitung probabilitas likelihood
+            // 4. Hitung probabilitas likelihood
             double likelihood = 1.0;
             System.out.println("  Probabilitas Likelihood:");
             for (String feature : features) {
@@ -58,8 +72,8 @@ public class NaiveBayesClassifier {
             }
             System.out.printf("  Total Likelihood P(fitur | %s) = %.4f%n", category, likelihood);
 
-            // 4. Hitung probabilitas posterior
-            double posteriorProbability = priorProbability * likelihood;
+            // 5. Hitung probabilitas posterior (dengan normalisasi)
+            double posteriorProbability = (priorProbability * likelihood) / evidence;
             System.out.printf("  Probabilitas Posterior P(%s | fitur) = %.4f%n", category, posteriorProbability);
 
             // Cek apakah ini adalah probabilitas posterior tertinggi
