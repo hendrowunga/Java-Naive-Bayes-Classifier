@@ -7,14 +7,13 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.HashSet; // Import HashSet
 
 /**
  * Abstract base extended by any concrete classifier. It implements the basic
  * functionality for storing categories or features and can be used to calculate
  * basic probabilities – both category and feature probabilities. The classify
  * function has to be implemented by the concrete classifier class.
- *
- * @author Philipp Nolte
  *
  * @param <T> The feature class.
  * @param <K> The category class.
@@ -65,6 +64,11 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
     private Queue<Classification<T, K>> memoryQueue;
 
     /**
+     *  A set to store all unique features encountered during training.
+     */
+    private Set<T> featureSet = new HashSet<>();
+
+    /**
      * Constructs a new classifier without any trained knowledge.
      */
     public Classifier() {
@@ -80,6 +84,17 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
         this.totalFeatureCount = new Hashtable<T, Integer>(Classifier.INITIAL_FEATURE_DICTIONARY_CAPACITY);
         this.totalCategoryCount = new Hashtable<K, Integer>(Classifier.INITIAL_CATEGORY_DICTIONARY_CAPACITY);
         this.memoryQueue = new LinkedList<Classification<T, K>>();
+        this.featureSet = new HashSet<>(); // Reset feature set as well
+    }
+
+    /**
+     * Returns a <code>Set</code> of all unique features encountered during
+     * training.
+     *
+     * @return The <code>Set</code> of features.
+     */
+    public Set<T> getFeatureSet() {
+        return featureSet;
     }
 
     /**
@@ -289,7 +304,7 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
     public float featureProbability(T feature, K category) {
         final float featureCountInCategory = this.getFeatureCount(feature, category);
         final float totalCategoryCount = this.getCategoryCount(category);
-        final int numberOfFeatures = this.getFeatures().size();
+        final int numberOfFeatures = this.getFeatureSet().size();
 
         // Laplace Correction: Add-1 smoothing
         float probability = (featureCountInCategory + 1) / (totalCategoryCount + numberOfFeatures);
@@ -403,6 +418,7 @@ public abstract class Classifier<T, K> implements IFeatureProbability<T, K>, jav
      */
     public void learn(K category, Collection<T> features) {
         this.learn(new Classification<T, K>(features, category));
+        featureSet.addAll(features); // Add features to featureSet
     }
 
     /**
